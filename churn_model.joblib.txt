@@ -1,0 +1,59 @@
+import streamlit as st
+import pandas as pd
+import joblib
+
+st.set_page_config(page_title="Bank Customer Churn Prediction", page_icon="🏦")
+
+st.title("🏦 Bank Customer Churn Prediction")
+st.write("Enter customer details to predict churn.")
+
+# Load model
+model = joblib.load("churn_model.joblib")
+
+credit_score = st.number_input("Credit Score", 300, 900, 650)
+age = st.number_input("Age", 18, 100, 35)
+tenure = st.number_input("Tenure", 0, 10, 5)
+balance = st.number_input("Balance", 0.0, 300000.0, 50000.0)
+products = st.number_input("Number of Products", 1, 4, 1)
+
+has_card = st.selectbox("Has Credit Card", [0,1])
+active = st.selectbox("Is Active Member", [0,1])
+
+salary = st.number_input("Estimated Salary", 0.0, 300000.0, 70000.0)
+
+gender = st.selectbox("Gender", ["Female","Male"])
+geography = st.selectbox("Geography", ["France","Germany","Spain"])
+
+input_df = pd.DataFrame({
+    "Year":[2025],
+    "CreditScore":[credit_score],
+    "Geography":[geography],
+    "Gender":[gender],
+    "Age":[age],
+    "Tenure":[tenure],
+    "Balance":[balance],
+    "NumOfProducts":[products],
+    "HasCrCard":[has_card],
+    "IsActiveMember":[active],
+    "EstimatedSalary":[salary]
+})
+
+if st.button("Predict Churn"):
+    probability = model.predict_proba(input_df)[0][1]
+    prediction = model.predict(input_df)[0]
+
+    st.subheader("Prediction Result")
+
+    if prediction == 1:
+        st.error("⚠️ Customer is likely to churn.")
+    else:
+        st.success("✅ Customer is likely to stay.")
+
+    st.write(f"**Churn Probability:** {probability:.2%}")
+
+    if probability < 0.30:
+        st.info("Risk Level: Low")
+    elif probability < 0.60:
+        st.warning("Risk Level: Medium")
+    else:
+        st.error("Risk Level: High")
